@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Travel Agent">
+  <rect width="100" height="100" rx="22.5" fill="#0f8f8f"/>
+  <g transform="translate(10 10) scale(0.8)" fill="#ffffff">
+    <circle cx="88" cy="14" r="7"/>
+    <path d="M78 24 L10 30 L40 52 Z" opacity="0.82"/>
+    <path d="M78 24 L40 52 L34 78 Z"/>
+  </g>
+</svg>
