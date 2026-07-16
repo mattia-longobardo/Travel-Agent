@@ -94,9 +94,6 @@ This stack runs **standalone** from its own directory; there is no parent `proje
 Once running, verify end-to-end operation:
 
 1. **Open the app:**
-   ```
-   https://travel.longobardo.me
-   ```
 
 2. **Log in** with `ADMIN_USERNAME` and `ADMIN_PASSWORD` from `.env`.
 
