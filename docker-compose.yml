@@ -1,33 +1,9 @@
 services:
 
-# Travel Postgres # --------------------------------------------------------------------------------------------------------------
-
-  travel-postgres:
-    image: pgvector/pgvector:pg18
-    container_name: travel-postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${DB_TRAVEL_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      TZ: ${TZ}
-    volumes:
-      - ./data/postgres:/var/lib/postgresql
-    restart: unless-stopped
-    mem_limit: 2g
-    cpus: "1.0"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - travel_internal
-
 # Travel Redis # --------------------------------------------------------------------------------------------------------------
 
   travel-redis:
-    image: redis:7
+    image: redis:latest
     container_name: travel-redis
     user: "1000:1000"
     command: ["redis-server", "--save", "60", "1", "--dir", "/data"]
@@ -53,15 +29,15 @@ services:
     container_name: travel-backend
     user: "1000:1000"
     depends_on:
-      travel-postgres:
-        condition: service_healthy
       travel-redis:
         condition: service_healthy
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       DB_TRAVEL_PASSWORD: ${DB_TRAVEL_PASSWORD}
-      POSTGRES_HOST: travel-postgres
+      # DB migrato sul postgres condiviso dello stack db/ (rete db_internal).
+      # Dipendenza cross-stack: niente depends_on, ci pensano restart + healthcheck.
+      POSTGRES_HOST: postgres
       REDIS_HOST: travel-redis
       SESSION_SECRET: ${SESSION_SECRET}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
@@ -91,6 +67,7 @@ services:
     networks:
       - proxy_public
       - travel_internal
+      - db_internal
 
 # Travel Frontend # --------------------------------------------------------------------------------------------------------------
 
@@ -119,6 +96,8 @@ services:
 
 networks:
   proxy_public:
+    external: true
+  db_internal:
     external: true
   travel_internal:
     name: travel_internal
