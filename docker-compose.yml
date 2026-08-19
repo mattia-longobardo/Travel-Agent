@@ -1,26 +1,5 @@
 services:
 
-# Travel Redis # --------------------------------------------------------------------------------------------------------------
-
-  travel-redis:
-    image: redis:latest
-    container_name: travel-redis
-    user: "1000:1000"
-    command: ["redis-server", "--save", "60", "1", "--dir", "/data"]
-    volumes:
-      - ./data/redis:/data
-    restart: unless-stopped
-    mem_limit: 512m
-    cpus: "0.5"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    networks:
-      - travel_internal
-
 # Travel App (Unified Backend + Frontend) # -----------------------------------------------------------------------------------
 
   travel-app:
@@ -30,17 +9,16 @@ services:
     image: travel-app:latest
     container_name: travel-app
     user: "1000:1000"
-    depends_on:
-      travel-redis:
-        condition: service_healthy
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       DB_TRAVEL_PASSWORD: ${DB_TRAVEL_PASSWORD}
-      # DB migrato sul postgres condiviso dello stack db/ (rete db_internal).
-      # Dipendenza cross-stack: niente depends_on, ci pensano restart + healthcheck.
+      # DB e Redis migrati sui servizi condivisi dello stack db/ (rete db_internal).
       POSTGRES_HOST: postgres
-      REDIS_HOST: travel-redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: 4
       SESSION_SECRET: ${SESSION_SECRET}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_MODEL: ${OPENAI_MODEL}
@@ -69,7 +47,6 @@ services:
       - "traefik.http.routers.travel-app-router.middlewares=travel-app-https"
     networks:
       - proxy_public
-      - travel_internal
       - db_internal
 
 networks:
@@ -77,5 +54,3 @@ networks:
     external: true
   db_internal:
     external: true
-  travel_internal:
-    name: travel_internal

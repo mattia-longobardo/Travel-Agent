@@ -8,8 +8,11 @@ class Settings(BaseSettings):
     postgres_user: str = "travel"
     postgres_db: str = "travel"
     db_travel_password: str = "travel"
-    postgres_host: str = "travel-postgres"
-    redis_host: str = "travel-redis"
+    postgres_host: str = "postgres"
+    redis_host: str = "redis"
+    redis_port: int = 6379
+    redis_password: str | None = None
+    redis_db: int = 4
     openai_api_key: str = ""
     openai_model: str = "gpt-4.1"
     lastminute_mcp_url: str = "https://mcp.lastminute.com/mcp"
