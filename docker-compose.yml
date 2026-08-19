@@ -21,12 +21,14 @@ services:
     networks:
       - travel_internal
 
-# Travel Backend # --------------------------------------------------------------------------------------------------------------
+# Travel App (Unified Backend + Frontend) # -----------------------------------------------------------------------------------
 
-  travel-backend:
-    build: ./backend
-    image: travel-backend:latest
-    container_name: travel-backend
+  travel-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: travel-app:latest
+    container_name: travel-app
     user: "1000:1000"
     depends_on:
       travel-redis:
@@ -46,10 +48,11 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
+      BACKEND_URL: http://127.0.0.1:8000
       TZ: ${TZ}
     restart: unless-stopped
-    mem_limit: 1g
-    cpus: "1.0"
+    mem_limit: 1.5g
+    cpus: "1.5"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health').status==200 else 1)\""]
       interval: 15s
@@ -59,40 +62,15 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy_public"
-      - "traefik.http.routers.travel-backend-router.rule=Host(`${TRAVEL_HOST}`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.travel-backend-router.entrypoints=web"
-      - "traefik.http.services.travel-backend-service.loadbalancer.server.port=8000"
-      - "traefik.http.middlewares.travel-backend-https.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.travel-backend-router.middlewares=travel-backend-https"
+      - "traefik.http.routers.travel-app-router.rule=Host(`${TRAVEL_HOST}`)"
+      - "traefik.http.routers.travel-app-router.entrypoints=web"
+      - "traefik.http.services.travel-app-service.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.travel-app-https.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.travel-app-router.middlewares=travel-app-https"
     networks:
       - proxy_public
       - travel_internal
       - db_internal
-
-# Travel Frontend # --------------------------------------------------------------------------------------------------------------
-
-  travel-frontend:
-    build: ./frontend
-    image: travel-frontend:latest
-    container_name: travel-frontend
-    user: "1000:1000"
-    depends_on:
-      - travel-backend
-    environment:
-      BACKEND_URL: http://travel-backend:8000
-      TZ: ${TZ}
-    restart: unless-stopped
-    mem_limit: 512m
-    cpus: "0.5"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=proxy_public"
-      - "traefik.http.routers.travel-frontend-router.rule=Host(`${TRAVEL_HOST}`)"
-      - "traefik.http.routers.travel-frontend-router.entrypoints=web"
-      - "traefik.http.services.travel-frontend-service.loadbalancer.server.port=3000"
-    networks:
-      - proxy_public
-      - travel_internal
 
 networks:
   proxy_public:

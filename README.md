@@ -87,7 +87,7 @@ This stack runs **standalone** from its own directory; there is no parent `proje
    docker compose up -d
    ```
 
-   Expected containers: `travel-postgres`, `travel-redis`, `travel-backend`, `travel-frontend`.
+   Expected containers: `travel-redis`, `travel-app`.
 
 ### Deploy & Smoke Test
 
@@ -112,16 +112,18 @@ Once running, verify end-to-end operation:
 
 ## Layout
 
+- **`Dockerfile`** — Unified multi-stage Docker build combining Next.js frontend standalone build and FastAPI backend in a single container (`travel-app`).
+- **`entrypoint.sh`** — Unified entrypoint handling database migrations and launching/supervising both backend and frontend processes.
 - **`backend/`** — FastAPI application (auth, chats, LangGraph multi-agent system). Includes Node.js for `npx mcp-remote`.
 - **`frontend/`** — Next.js 16 application (login, immersive chat, SSE client).
-- **`data/`** — Persistent bind-mount directories for Postgres and Redis (auto-created at first run).
-- **`docker-compose.yml`** — Service stack (backend, frontend, Postgres, Redis, networks).
+- **`data/`** — Persistent bind-mount directories for Redis (auto-created at first run).
+- **`docker-compose.yml`** — Service stack (`travel-app`, Redis, networks).
 - **`docs/`** — Design specs, plans, and smoke-test references.
 
 ## Technical Notes
 
-- **Image layers:** Backend Dockerfile includes Node.js to spawn `npx mcp-remote` (required to bypass Cloudflare challenge on mcp.lastminute.com).
-- **Network isolation:** Backend and frontend talk over `travel_internal`; only Traefik (via `proxy_public`) exposes services to the outside.
+- **Unified Image:** The single container image runs FastAPI backend on port 8000 and Next.js frontend on port 3000, supervised by `entrypoint.sh`. Traefik routes all traffic to Next.js on port 3000, which internally proxies `/api` to the backend on loopback.
+- **Network isolation:** Backend talks to Redis over `travel_internal` and to Postgres over `db_internal`; only Traefik (via `proxy_public`) exposes services to the outside.
 - **Geolocation:** Browser geolocation is requested on the chat page; if provided, the origin coordinate is sent in the message payload to the Intake agent.
 - **Session & auth:** FastAPI sessions (Redis-backed) enforce user boundaries; multi-user safe.
 
