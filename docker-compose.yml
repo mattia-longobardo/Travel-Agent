@@ -2,18 +2,17 @@ services:
 
 # Travel App (Unified Backend + Frontend) # -----------------------------------------------------------------------------------
 
-  travel-app:
+  travel-agent:
     build:
       context: .
       dockerfile: Dockerfile
-    image: travel-app:latest
-    container_name: travel-app
+    image: travel-agent:latest
+    container_name: travel-agent
     user: "1000:1000"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       DB_TRAVEL_PASSWORD: ${DB_TRAVEL_PASSWORD}
-      # DB e Redis migrati sui servizi condivisi dello stack db/ (rete db_internal).
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
       REDIS_PORT: 6379
