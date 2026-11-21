@@ -17,14 +17,13 @@ make help      # list the targets
 make install   # frontend dependencies (the backend runs through uv)
 make lint      # ESLint on the frontend
 make test      # backend tests (SQLite + fakeredis, no services) and frontend tests
-make deploy    # build and start travel-agent from the parent Compose project (../)
 ```
 
-The stack belongs to the homelab `travel/` Compose project (`travel/docker-compose.yml` includes this file): deploy from there, never from this folder alone.
+Release: push a tag `vX.Y.Z` on `main`; `.github/workflows/release.yml` publishes `ghcr.io/mattia-longobardo/travel-agent:vX.Y.Z` (public). The homeserver runs that image from the homelab `travel/` stack (version + digest); `docker-compose.yml` here is for local runs only.
 
 ## Configure
 
-Copy `.env.example` to `.env` and fill it in. On the homeserver the `.env` is rendered from Infisical (`/travel/travel-agent`).
+Copy `.env.example` to `.env` and fill it in. On the homeserver the variables are rendered from Infisical (`/travel/travel-agent`) into `travel/.env` of the homelab stack.
 
 | Variable | Purpose |
 |---|---|

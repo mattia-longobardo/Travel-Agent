@@ -1,4 +1,4 @@
-.PHONY: help install lint test ci deploy
+.PHONY: help install lint test ci
 
 UV := uv run --no-project --python 3.12 --with-editable '.[dev]'
 
@@ -16,6 +16,3 @@ test: ## Backend tests (SQLite and fakeredis, no services) and frontend tests
 	cd frontend && npm test
 
 ci: install lint test ## CI entry point
-
-deploy: ## Build and start travel-agent from the parent Compose project (AGENTS.md, Deploy)
-	cd .. && flock -n /var/lock/deploy-travel.lock docker compose up -d --build --wait travel-agent
